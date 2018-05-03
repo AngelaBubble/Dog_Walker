@@ -43,15 +43,7 @@ if(isset($_POST['post_message'])) {
 
 }
 
-$profle_of_user = new User($con, $user_array['username']);
-$checkIsFriend = 'True';
-if ($profle_of_user->isFriend($userLoggedIn)) {
-  $checkIsFriend = 'True';
-} else {
-  $checkIsFriend = 'False';
-}
-
-?>
+ ?>
 
  	<style type="text/css">
 	 	.wrapper {
@@ -91,8 +83,8 @@ if ($profle_of_user->isFriend($userLoggedIn)) {
 
  			if($userLoggedIn != $username) {
 
- 				if ($logged_in_user_obj->isFriend($username) && $logged_in_user_obj->isDogOwner() == 'true') {
- 					echo '<input type="submit" name="remove_friend" class="danger" value="End dog walker"><br>';
+ 				if($logged_in_user_obj->isFriend($username)) {
+ 					echo '<input type="submit" name="remove_friend" class="danger" value="Remove Friend"><br>';
  				}
  				else if ($logged_in_user_obj->didReceiveRequest($username)) {
  					echo '<input type="submit" name="respond_request" class="warning" value="Respond to Request"><br>';
@@ -100,17 +92,25 @@ if ($profle_of_user->isFriend($userLoggedIn)) {
  				else if ($logged_in_user_obj->didSendRequest($username)) {
  					echo '<input type="submit" name="" class="default" value="Request Sent"><br>';
  				}
- 				else {
-          if ($logged_in_user_obj->isDogOwner() == 'true' && !$logged_in_user_obj->isFriend($username)) {
- 					echo '<input type="submit" name="add_friend" class="success" value="start dog walker"><br>';
-          } else if(!$logged_in_user_obj->isFriend($username)) {
-          echo '<input type="submit" name="add_friend" class="success" value="request dog walking"><br>';           
-          }
-        }
-      }
+ 				else 
+ 					echo '<input type="submit" name="add_friend" class="success" value="Add Friend"><br>';
+
+ 			}
+
  			?>
  		</form>
  		<input type="submit" class="deep_blue" data-toggle="modal" data-target="#post_form" value="Post Something">
+
+    <?php  
+    if($userLoggedIn != $username) {
+      echo '<div class="profile_info_bottom">';
+        echo $logged_in_user_obj->getMutualFriends($username) . " Mutual friends";
+      echo '</div>';
+    }
+
+
+    ?>
+
  	</div>
 
 
@@ -161,7 +161,6 @@ if ($profle_of_user->isFriend($userLoggedIn)) {
 
 
       <div class="tab-pane" id="trace_user_map">
-        <button onclick ="SetMarker()">Trace current location</button>
         <div id='map_of_two_user'></div>
       </div>
 
@@ -260,53 +259,29 @@ if ($profle_of_user->isFriend($userLoggedIn)) {
   });
 
   </script>
-<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCeqEU7yQR9ohoje4aSvTCMbvFklMfzFPg&sensor=false"></script>
-<script type="text/javascript">
-    var map;
-    var marker;
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-                var arr = this.responseText.split(' ');
-                var initlat = Number(arr[0]);
-                var initlng = Number(arr[1]);
-                LoadMap(initlat,initlng)
-            }
-    }
-    xmlhttp.open("GET", "trace_users.php?username=" + "<?php echo $user_array['username']?>", true);
-    xmlhttp.send();
-    function LoadMap(lat,lng) {
-        var mapOptions = {
-            center: new google.maps.LatLng(lat, lng),
-            zoom: 15,
-            mapTypeId: google.maps.MapTypeId.ROADMAP
-        };
-        map = new google.maps.Map(document.getElementById("map_of_two_user"), mapOptions);
-        //SetMarker();
-    };
-    LoadMap();
-    function SetMarker() {
-        if (marker != null) {
-            marker.setMap(null);
-        }
-        if('<?php echo $checkIsFriend === 'True' ?>') {
+  <script>
+    function initMap() {
         var xmlhttp = new XMLHttpRequest();
-          xmlhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    var arr = this.responseText.split(' ');
-                    var myLatlng = new google.maps.LatLng(Number(arr[0]), Number(arr[1]));
-                    marker = new google.maps.Marker({
-                        position: myLatlng,
-                        map: map
-                    });
+        xmlhttp.onreadystatechange = function(){
+              if (this.readyState == 4 && this.status == 200) {
+                  var arr = this.responseText.split(' ');
+                  var uluru = {lat: Number(arr[0]), lng: Number(arr[1])};
+                  var map = new google.maps.Map(document.getElementById('map_of_two_user'), {
+                    zoom: 15,
+                    center: uluru
+                  });
+                  var marker = new google.maps.Marker({
+                    position: uluru,
+                    map: map
+                  });
                 }
-            }
-            xmlhttp.open("GET", "trace_users.php?username=" + "<?php echo $user_array['username']?>", true);
-            xmlhttp.send();
-          } else {
-            alert("Have not start dog walking, cannot trace other's location");
-          }
-    };
+              }
+              xmlhttp.open("GET", "trace_users.php?username=" + "<?php echo $user_array['username']?>", true);
+              xmlhttp.send();
+    }
+ </script>
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCeqEU7yQR9ohoje4aSvTCMbvFklMfzFPg&callback=initMap">
 </script>
 	</div>
 </body>

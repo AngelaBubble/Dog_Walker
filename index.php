@@ -13,38 +13,11 @@ if ($resp['status'] == 'OK'){
 
 if(isset($_POST['post'])){  
 	$uploadOk = 1;
-	$imageName = $_FILES['fileToUpload']['name'];
 	$errorMessage = "";
-	if($imageName != "") {
-		$targetDir = "assets/images/posts/";
-		$imageName = $targetDir . uniqid() . basename($imageName);
-		$imageFileType = pathinfo($imageName, PATHINFO_EXTENSION);
-
-		if($_FILES['fileToUpload']['size'] > 10000000) {
-			$errorMessage = "Sorry your file is too large";
-			$uploadOk = 0;
-		}
-
-		if(strtolower($imageFileType) != "jpeg" && strtolower($imageFileType) != "png" && strtolower($imageFileType) != "jpg") {
-			$errorMessage = "Sorry, only jpeg, jpg and png files are allowed";
-			$uploadOk = 0;
-		}
-
-		if($uploadOk) {
-			if(move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $imageName)) {
-				//image uploaded okay
-			}
-			else {
-				//image did not upload
-				$uploadOk = 0;
-			}
-		}
-
-	}
 
 	if($uploadOk) {
 		$post = new Post($con, $userLoggedIn);
-		$post->submitPost($_POST['post_text'], 'none', $imageName);
+		$post->submitPost($_POST['post_text'], 'none','');
 	}
 	else {
 		echo "<div style='text-align:center;' class='alert alert-danger'>
@@ -55,52 +28,61 @@ if(isset($_POST['post'])){
 }
 
 
- ?>
-	<div class="user_details column">
-		<a href="<?php echo $userLoggedIn; ?>">  <img src="<?php echo $user['profile_pic']; ?>"> </a>
+ ?>	
+ 	<div id="main_page_wrapper">
+ 			<div id="user_post_area">		
+				<div class="user_details column" id="user_details_column">
+					<a href="<?php echo $userLoggedIn; ?>">  <img src="<?php echo $user['profile_pic']; ?>"> </a>
 
-		<div class="user_details_left_right">
-			<a href="<?php echo $userLoggedIn; ?>">
-			<?php 
-			echo $user['first_name'] . " " . $user['last_name'];
+					<div class="user_details_left_right">
+						<a href="<?php echo $userLoggedIn; ?>">
+						<?php 
+						echo $user['first_name'] . " " . $user['last_name'];
 
-			 ?>
-			</a>
-			<br>
-			<?php echo "Posts: " . $user['num_posts']. "<br>"; 
-			echo "Likes: " . $user['num_likes'];
+						 ?>
+						</a>
+						<br>
+						<?php echo "Posts: " . $user['num_posts']. "<br>"; 
+						echo "Likes: " . $user['num_likes'] . "<br>";
 
-			?>
-			<br>
-			<?php 
-				if ($user['dogowner'] == 'true'){
-					echo "Dog owner<br>";
-				} else {
-					echo "Dog walker<br>";
-				}
-			 ?>
-			 <br>
-		</div>
+						?>
+						<br>
+						<?php 
+							if ($user['dogowner'] == 'true'){
+								echo "<button type='button' class='btn btn-success'>Dog owner</button>";
+							} else {
+								echo "<button type='button' class='btn btn-warning'>Dog walker</button>";
+							}
+						 ?>
+						 <br>
+					</div>
+				</div>
+				<div class="main_column column" id="main_column">
+					<form class="post_form" action="index.php" method="POST" enctype="multipart/form-data">
+					<textarea name="post_text" id="post_text" placeholder="Got something to say?"></textarea>
+					<input type="submit" name="post" id="post_button" value="Post">
+					<hr>
 
-	</div>
+				</form>
 
-	<div class="main_column column">
-		<form class="post_form" action="index.php" method="POST" enctype="multipart/form-data">
-			<textarea name="post_text" id="post_text" placeholder="Got something to say?"></textarea>
-			<input type="submit" name="post" id="post_button" value="Post">
-			<hr>
+				<div class="posts_area"></div>
+				<!-- <button id="load_more">Load More Posts</button> -->
+				<img id="loading" src="assets/images/icons/loading.gif">
 
-		</form>
+				</div>
+			</div>
+			<div id = 'map_wrapper'>
+				<?php 
+					if ($user['dogowner'] == 'true'){
+						echo "<h2>Find all dog walkers on the map</h2>";
+					} else {
+						echo "<h2>Find all dog owners on the map</h2>";
+					}
 
-		<div class="posts_area"></div>
-		<!-- <button id="load_more">Load More Posts</button> -->
-		<img id="loading" src="assets/images/icons/loading.gif">
-
-
-	</div>
-
-
-	<div id = 'map'>
+			 	?>
+				<div id = 'map'>
+				</div>
+			</div>
 	</div>
 	<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
   <script>
@@ -115,7 +97,7 @@ if(isset($_POST['post'])){
     		user_info.push(<?php echo $latitude ?>);
     		user_info.push(<?php echo $longitude ?>);
     		locations.push(user_info);
-    		for(var i = 0; i < arr.length; i+=3){
+    		for (var i = 0; i < arr.length; i+=3) {
 				(function(){
 					var temparr = [];
 					var tempstr = '<h4><a href=' + 'http://localhost:8080/demo/' + arr[i] + '>'+  arr[i] +'</a></h4>';
