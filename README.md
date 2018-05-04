@@ -7,3 +7,9 @@ profile.php is the page for user to check the detail of their own account.
 
 Inside assests folder are files of css and js.
 Inside includes folder are files for processing user requests, such as adding friends and sending messages.
+
+## User story
+Please check the sprint1.ppt
+
+## Demo
+There is a file for a video Demo.
